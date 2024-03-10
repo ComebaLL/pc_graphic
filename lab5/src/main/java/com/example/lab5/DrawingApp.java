@@ -9,6 +9,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.util.Stack;
+
 public class DrawingApp extends Application {
 
     private double startX, startY;
@@ -62,8 +64,8 @@ public class DrawingApp extends Application {
     }
 
     private void drawLine(double startX, double startY, double endX, double endY) {
-        gc.setStroke(Color.BLACK); // Можете изменить цвет линии
-        gc.setLineWidth(2); // Можете изменить толщину линии
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
         gc.strokeLine(startX, startY, endX, endY);
     }
 
@@ -79,47 +81,31 @@ public class DrawingApp extends Application {
             return;
         }
 
-        fillRecursive(x, y, originalColor, fillColor);
-    }
+        Stack<int[]> pixelsToFill = new Stack<>();
+        pixelsToFill.push(new int[]{x, y});
 
-    private void fillArea(int x, int y) {
-        if (x < 0 || x >= canvas.getWidth() || y < 0 || y >= canvas.getHeight()) {
-            return;
+        while (!pixelsToFill.isEmpty()) {
+            int[] currentPixel = pixelsToFill.pop();
+            x = currentPixel[0];
+            y = currentPixel[1];
+
+            if (getPixelColor(x, y).equals(originalColor)) {
+                gc.setFill(fillColor);
+                gc.fillRect(x, y, 1, 1);
+
+                pixelsToFill.push(new int[]{x + 1, y});
+                pixelsToFill.push(new int[]{x - 1, y});
+                pixelsToFill.push(new int[]{x, y + 1});
+                pixelsToFill.push(new int[]{x, y - 1});
+            }
         }
-
-        Color originalColor = getPixelColor(x, y);
-        Color fillColor = Color.PURPLE;
-
-        if (originalColor.equals(fillColor)) {
-            return;
-        }
-
-        fillRecursive(x, y, originalColor, fillColor);
-    }
-
-    private void fillRecursive(int x, int y, Color originalColor, Color fillColor) {
-        if (x < 0 || x >= canvas.getWidth() || y < 0 || y >= canvas.getHeight()) {
-            return;
-        }
-
-        if (!getPixelColor(x, y).equals(originalColor)) {
-            return;
-        }
-
-        gc.setFill(fillColor);
-        gc.fillRect(x, y, 1, 1);
-
-        fillRecursive(x + 1, y, originalColor, fillColor);
-        fillRecursive(x - 1, y, originalColor, fillColor);
-        fillRecursive(x, y + 1, originalColor, fillColor);
-        fillRecursive(x, y - 1, originalColor, fillColor);
     }
 
     private Color getPixelColor(int x, int y) {
         return canvas.snapshot(null, null).getPixelReader().getColor(x, y);
     }
-
 }
+
 
 
 
